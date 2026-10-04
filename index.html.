@@ -1,0 +1,387 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StudySpark — Smart Student Planner</title>
+  <style>
+    :root {
+      --bg: #f7f5ff;
+      --card: #ffffff;
+      --ink: #24213a;
+      --muted: #77738f;
+      --purple: #6d4aff;
+      --purple2: #8e79ff;
+      --line: #e9e5f5;
+      --green: #16865b;
+      --red: #c44d62;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, sans-serif;
+      color: var(--ink);
+      background: linear-gradient(135deg, #f5f2ff, #f8fbff 55%, #fff7fb);
+      min-height: 100vh;
+    }
+
+    .wrap { max-width: 1100px; margin: auto; padding: 28px 18px 44px; }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin-bottom: 26px; }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .logo { width: 48px; height: 48px; display: grid; place-items: center; color: white; border-radius: 15px; font-size: 24px; background: linear-gradient(135deg, var(--purple), #b06cff); }
+    h1 { margin: 0; font-size: clamp(24px, 4vw, 34px); letter-spacing: -1px; }
+    .sub { color: var(--muted); margin-top: 3px; font-size: 14px; }
+    .today { background: white; border: 1px solid var(--line); border-radius: 14px; padding: 10px 14px; color: var(--muted); font-size: 13px; }
+
+    .hero {
+      background: linear-gradient(120deg, #6d4aff, #9276ff 65%, #b48aff);
+      color: white;
+      border-radius: 24px;
+      padding: 25px;
+      display: grid;
+      grid-template-columns: 1.4fr .8fr;
+      gap: 22px;
+      align-items: center;
+    }
+    .hero h2 { margin: 0 0 8px; font-size: clamp(22px, 3vw, 30px); }
+    .hero p { margin: 0; color: #f0ecff; line-height: 1.55; }
+    .hero-stat { background: #ffffff20; border: 1px solid #ffffff30; border-radius: 18px; padding: 18px; }
+    .hero-stat .big { font-size: 38px; font-weight: 800; }
+    .hero-stat .small { font-size: 13px; color: #f0ecff; }
+    .progress-track { height: 8px; border-radius: 99px; background: #ffffff45; margin-top: 12px; overflow: hidden; }
+    .progress-fill { height: 100%; width: 0; background: white; border-radius: 99px; transition: width .25s; }
+
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 18px 0; }
+    .stat, .panel { background: var(--card); border: 1px solid var(--line); border-radius: 18px; }
+    .stat { padding: 17px; }
+    .stat .label { color: var(--muted); font-size: 13px; }
+    .stat .num { font-size: 27px; font-weight: 800; margin-top: 5px; }
+    .layout { display: grid; grid-template-columns: 350px 1fr; gap: 18px; align-items: start; }
+    .panel { padding: 20px; margin-bottom: 18px; }
+    .panel h3 { margin: 0 0 15px; font-size: 18px; }
+
+    label { display: block; font-size: 13px; font-weight: 650; margin: 13px 0 6px; }
+    input, select {
+      width: 100%;
+      border: 1px solid #ded9ef;
+      border-radius: 11px;
+      padding: 11px 12px;
+      font: inherit;
+      color: var(--ink);
+      background: white;
+    }
+    button { border: 0; border-radius: 11px; padding: 11px 14px; cursor: pointer; font: inherit; font-weight: 700; }
+    .primary { background: var(--purple); color: white; width: 100%; margin-top: 16px; }
+    .secondary { background: #f0edff; color: var(--purple); }
+    .danger { background: #fff0f2; color: var(--red); }
+    .task-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+    .filters { display: flex; gap: 7px; flex-wrap: wrap; margin: 13px 0 16px; }
+    .filter { background: #f6f4fb; color: var(--muted); padding: 8px 11px; font-size: 12px; }
+    .filter.active { background: #eee9ff; color: var(--purple); }
+    .task-list { display: grid; gap: 10px; }
+    .task { display: flex; align-items: flex-start; gap: 11px; padding: 13px; border: 1px solid var(--line); border-radius: 14px; background: white; }
+    .task input[type=checkbox] { width: 18px; height: 18px; margin-top: 3px; accent-color: var(--purple); flex-shrink: 0; }
+    .task-main { flex: 1; min-width: 0; }
+    .task-title { font-weight: 750; overflow-wrap: anywhere; }
+    .task.done .task-title { text-decoration: line-through; color: #9a96aa; }
+    .task-meta { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 7px; color: var(--muted); font-size: 12px; }
+    .pill { padding: 4px 7px; border-radius: 7px; background: #f4f1ff; color: #6750c7; }
+    .pill.high { background: #fff0f1; color: #bc4057; }
+    .pill.medium { background: #fff6e5; color: #966516; }
+    .pill.low { background: #eaf8f1; color: #21805b; }
+    .icon-btn { padding: 6px 8px; font-size: 12px; background: #f7f5fb; color: var(--muted); }
+    .empty { text-align: center; padding: 35px 15px; color: var(--muted); border: 1px dashed #d9d2ee; border-radius: 14px; }
+    .timer-panel { margin-top: 18px; text-align: center; }
+    .timer { font-size: 42px; font-weight: 850; letter-spacing: 1px; margin: 6px 0 12px; }
+    .timer-controls { display: flex; gap: 8px; justify-content: center; }
+    .tip { font-size: 12px; line-height: 1.5; color: var(--muted); margin-top: 13px; }
+    footer { text-align: center; color: var(--muted); font-size: 12px; padding: 25px 0 0; }
+
+    @media (max-width: 800px) {
+      .hero, .layout { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 500px) {
+      .stats { gap: 8px; }
+      .stat { padding: 12px; }
+      .stat .num { font-size: 22px; }
+      .wrap { padding: 18px 12px 32px; }
+      .panel { padding: 15px; }
+    }
+  </style>
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <div class="brand">
+      <div class="logo">✦</div>
+      <div>
+        <h1>StudySpark</h1>
+        <div class="sub">Your simple space to plan, focus, and finish.</div>
+      </div>
+    </div>
+    <div class="today" id="todayLabel">Your study dashboard</div>
+  </header>
+
+  <section class="hero">
+    <div>
+      <h2>Small steps. Big progress.</h2>
+      <p>Organize assignments, choose what matters most, and build a steady study habit. Your tasks stay saved in this browser.</p>
+    </div>
+    <div class="hero-stat">
+      <div class="small">TODAY'S COMPLETION</div>
+      <div class="big"><span id="heroPercent">0</span>%</div>
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="small" style="margin-top:9px" id="heroSummary">Let's get started.</div>
+    </div>
+  </section>
+
+  <section class="stats">
+    <div class="stat"><div class="label">All tasks</div><div class="num" id="totalCount">0</div></div>
+    <div class="stat"><div class="label">Completed</div><div class="num" id="doneCount">0</div></div>
+    <div class="stat"><div class="label">Still to do</div><div class="num" id="remainingCount">0</div></div>
+  </section>
+
+  <div class="layout">
+    <div>
+      <section class="panel">
+        <h3>＋ Add a study task</h3>
+        <form id="taskForm">
+          <label for="taskTitle">Task name</label>
+          <input id="taskTitle" maxlength="100" placeholder="e.g., Revise Business Analytics" required />
+          <label for="taskDate">Due date</label>
+          <input id="taskDate" type="date" />
+          <label for="taskPriority">Priority</label>
+          <select id="taskPriority">
+            <option value="Medium">Medium</option>
+            <option value="High">High</option>
+            <option value="Low">Low</option>
+          </select>
+          <label for="taskSubject">Subject / category</label>
+          <input id="taskSubject" maxlength="40" placeholder="e.g., College, Assignment" />
+          <button class="primary" type="submit">Add task</button>
+        </form>
+      </section>
+
+      <section class="panel timer-panel">
+        <h3>⏱ Focus timer</h3>
+        <div class="sub">Try a short focus session.</div>
+        <div class="timer" id="timerDisplay">25:00</div>
+        <div class="timer-controls">
+          <button class="primary" style="width:auto;margin:0" id="timerStart">Start</button>
+          <button class="secondary" id="timerReset">Reset</button>
+        </div>
+        <div class="tip">Tip: Pick one task, focus for 25 minutes, then take a short break. Keep this tab open while the timer runs.</div>
+      </section>
+    </div>
+
+    <section class="panel">
+      <div class="task-head">
+        <h3 style="margin:0">Your task list</h3>
+        <button class="secondary" id="clearDone">Clear completed</button>
+      </div>
+      <div class="filters" role="group" aria-label="Filter tasks">
+        <button class="filter active" data-filter="all">All</button>
+        <button class="filter" data-filter="active">To do</button>
+        <button class="filter" data-filter="done">Completed</button>
+      </div>
+      <div class="task-list" id="taskList"></div>
+    </section>
+  </div>
+  <footer>StudySpark · A student productivity prototype · Tasks are stored locally in your browser.</footer>
+</main>
+
+<script>
+  const STORAGE_KEY = 'studyspark_tasks_v1';
+  let tasks = loadTasks();
+  let currentFilter = 'all';
+  let secondsLeft = 25 * 60;
+  let timerInterval = null;
+  let timerRunning = false;
+
+  const $ = (id) => document.getElementById(id);
+
+  function loadTasks() {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveTasks() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+  }
+
+  function safeText(value) {
+    return String(value ?? '').replace(/[&<>"']/g, ch => ({
+      '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+    }[ch]));
+  }
+
+  function dateText(value) {
+    if (!value) return 'No due date';
+    const date = new Date(value + 'T00:00:00');
+    return Number.isNaN(date.getTime())
+      ? 'No due date'
+      : date.toLocaleDateString(undefined, { day:'numeric', month:'short', year:'numeric' });
+  }
+
+  function render() {
+    const total = tasks.length;
+    const done = tasks.filter(t => t.done).length;
+    const remaining = total - done;
+    const percent = total ? Math.round(done / total * 100) : 0;
+
+    $('totalCount').textContent = total;
+    $('doneCount').textContent = done;
+    $('remainingCount').textContent = remaining;
+    $('heroPercent').textContent = percent;
+    $('progressFill').style.width = percent + '%';
+    $('heroSummary').textContent = total ? `${done} of ${total} tasks completed` : 'Add your first task to begin.';
+
+    const visible = tasks.filter(t =>
+      currentFilter === 'all' ||
+      (currentFilter === 'active' && !t.done) ||
+      (currentFilter === 'done' && t.done)
+    );
+
+    const list = $('taskList');
+
+    if (!visible.length) {
+      list.innerHTML = `<div class="empty">${tasks.length ? 'No tasks in this filter.' : 'No tasks yet. Add one on the left to get started!'}<br><span style="font-size:12px">Your progress will appear here.</span></div>`;
+      return;
+    }
+
+    list.innerHTML = visible.map(t => `
+      <article class="task ${t.done ? 'done' : ''}">
+        <input type="checkbox" aria-label="Mark task completed" data-action="toggle" data-id="${t.id}" ${t.done ? 'checked' : ''} />
+        <div class="task-main">
+          <div class="task-title">${safeText(t.title)}</div>
+          <div class="task-meta">
+            <span>${safeText(dateText(t.date))}</span>
+            <span class="pill ${t.priority.toLowerCase()}">${safeText(t.priority)} priority</span>
+            ${t.subject ? `<span class="pill">${safeText(t.subject)}</span>` : ''}
+          </div>
+        </div>
+        <div class="task-actions">
+          <button class="icon-btn" aria-label="Delete task" data-action="delete" data-id="${t.id}">Delete</button>
+        </div>
+      </article>`).join('');
+  }
+
+  $('taskForm').addEventListener('submit', (event) => {
+    event.preventDefault();
+    const title = $('taskTitle').value.trim();
+    if (!title) return;
+
+    tasks.unshift({
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2,7),
+      title,
+      date: $('taskDate').value,
+      priority: $('taskPriority').value,
+      subject: $('taskSubject').value.trim(),
+      done: false,
+      createdAt: new Date().toISOString()
+    });
+
+    saveTasks();
+    render();
+    $('taskForm').reset();
+    $('taskPriority').value = 'Medium';
+    $('taskTitle').focus();
+  });
+
+  $('taskList').addEventListener('change', (event) => {
+    const control = event.target.closest('[data-action="toggle"]');
+    if (!control) return;
+
+    const task = tasks.find(t => t.id === control.dataset.id);
+    if (task) {
+      task.done = control.checked;
+      saveTasks();
+      render();
+    }
+  });
+
+  $('taskList').addEventListener('click', (event) => {
+    const control = event.target.closest('[data-action="delete"]');
+    if (!control) return;
+
+    tasks = tasks.filter(t => t.id !== control.dataset.id);
+    saveTasks();
+    render();
+  });
+
+  document.querySelectorAll('[data-filter]').forEach(button => {
+    button.addEventListener('click', () => {
+      currentFilter = button.dataset.filter;
+      document.querySelectorAll('[data-filter]').forEach(b =>
+        b.classList.toggle('active', b === button)
+      );
+      render();
+    });
+  });
+
+  $('clearDone').addEventListener('click', () => {
+    tasks = tasks.filter(t => !t.done);
+    saveTasks();
+    render();
+  });
+
+  function updateTimer() {
+    const mins = Math.floor(secondsLeft / 60).toString().padStart(2, '0');
+    const secs = (secondsLeft % 60).toString().padStart(2, '0');
+    $('timerDisplay').textContent = `${mins}:${secs}`;
+  }
+
+  $('timerStart').addEventListener('click', () => {
+    if (timerRunning) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+      timerRunning = false;
+      $('timerStart').textContent = 'Resume';
+      return;
+    }
+
+    if (secondsLeft <= 0) secondsLeft = 25 * 60;
+    timerRunning = true;
+    $('timerStart').textContent = 'Pause';
+
+    timerInterval = setInterval(() => {
+      secondsLeft -= 1;
+      updateTimer();
+
+      if (secondsLeft <= 0) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+        timerRunning = false;
+        secondsLeft = 0;
+        updateTimer();
+        $('timerStart').textContent = 'Start';
+        alert('Focus session complete! Take a short break.');
+      }
+    }, 1000);
+  });
+
+  $('timerReset').addEventListener('click', () => {
+    clearInterval(timerInterval);
+    timerInterval = null;
+    timerRunning = false;
+    secondsLeft = 25 * 60;
+    updateTimer();
+    $('timerStart').textContent = 'Start';
+  });
+
+  $('todayLabel').textContent = new Date().toLocaleDateString(undefined, {
+    weekday:'short', day:'numeric', month:'short', year:'numeric'
+  });
+
+  updateTimer();
+  render();
+</script>
+</body>
+</html>
